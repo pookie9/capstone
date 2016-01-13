@@ -3,7 +3,6 @@
 #Calls all of the other methods. Note, this will have to be replaced once we start using ROS, but this allows us to get started on the individual parts much more easily
 
 from PIL import Image;
-from freenect import sync_get_depth as get_depth, sync_get_video as get_video;
 import numpy as np;
 import Locator,Classifier,Router,Kinect;
 

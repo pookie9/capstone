@@ -12,14 +12,14 @@ targetLoc=False #First time we find target then we save it (assumes no moving ta
 robotLoc=False
 thresh=10 #How close in pixels the robot has to get to the target
 
-#Returns true if the robot is on the target
+#REQUIRED Returns true if the robot is on the target
 def onTarget():
     assert robotLoc, "Robot not found yet"
     assert targetLoc, "Target not found yet"
     return abs(robotLoc[0]-targetLoc[0])<thresh and abs(robotLoc[1]-targetLoc[1])<thresh
         
-#Returns the x/y coordinates (in pixels) of the center of the robot and the orientation in radians
-#input=PIL image
+#REQUIRED Returns the x/y coordinates (in pixels) of the center of the robot and the orientation in radians
+#input=opencv image
 #output=(x,y,orientation)
 def locateRobot(im):
     global robotLoc
@@ -28,7 +28,9 @@ def locateRobot(im):
     angle=atan(float(upper[1]-lower[1])/(float(upper[0]-lower[0])+.01))
     robotLoc=(lower[0]+(upper[0]-lower[0])/2, lower[1]+(upper[1]-lower[1])/2, angle)
     return robotLoc
-#Returns the x/y coordinates (in pixels) of the target
+#REQUIRED Returns the x/y coordinates (in pixels) of the target
+#input=opencv image
+#output=(x,y)
 def locateTarget(im):
     global targetLoc
     if not targetLoc:
@@ -36,7 +38,7 @@ def locateTarget(im):
     return targetLoc
 
 
-#Returns an image that only shows the "knowledge of the robot, so location and orientation of robot, location of target, and known walls
+#REQUIRED Returns an opencv image that only shows the "knowledge of the robot, so location and orientation of robot, location of target, and known walls
 def getKnowledge(im):
     radius=5
     robot=locateRobot(im)
