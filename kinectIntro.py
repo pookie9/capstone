@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#deprecated, not using freenect anymore, using ROS for access to kinect
 from freenect import sync_get_depth as get_depth, sync_get_video as get_video
 import cv  
 import numpy as np
