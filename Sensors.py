@@ -134,10 +134,10 @@ class SimSensors:
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
         cv2.imshow('image',im)
         cv2.waitKey(0)
-
+        cv2.destroyAllWindows()
 sim=SimSensors("BasicMaze.png",[],[200,200,0])
 cv2.waitKey(0)
-#sim.showBot()
+sim.showBot()
 sim.move([300,300])
 sim.getKinectData()
-cv2.destroyAllWindows()
+sim.showBot()
