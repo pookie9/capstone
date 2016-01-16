@@ -79,7 +79,7 @@ class SimSensors:
             else:
                 newOrientation=math.pi
         else:
-            newOrientation=math.atan((newPos[1]-self.pos[1])/(newPos[0]-self.pos[0]))
+            newOrientation=math.atan(float(newPos[1]-self.pos[1])/float((newPos[0]-self.pos[0])))
         #Making sure newOrientation is in the correct quadrant
         if newPos[0]-self.pos[0]<0 and newPos[1]-self.pos[1]<0:
             newOrientation+=math.pi
@@ -110,14 +110,6 @@ cv2.waitKey(0)
 sim.showBot()
 sim.move([300,300])
 sim.showBot()
-sim.move([280,300])
-sim.showBot()
-sim.move([260,300])
-sim.showBot()
-sim.move([240,300])
-sim.showBot()
-sim.move([220,300])
-sim.showBot()
-sim.move([200,200])
+sim.move([240,260])
 sim.showBot()
 cv2.destroyAllWindows()
