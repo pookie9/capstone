@@ -1,0 +1,30 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script type="text/javascript" src="http://fiddle.jshell.net/js/lib/mootools-core-1.4.5-nocompat.js"></script>
+<script type="text/javascript" src="mazeMaker.js">
+
+</script>
+</head>
+
+<body>
+<div style="background:#990; width:100%; padding:20px; ">
+<label>Image File:</label><br/>
+<input type="file" id="imageLoader" name="imageLoader"/>
+</div>
+<button id="small" type="button" onclick="small()">Small</button>
+<button id="normal" type="button" onclick="normal()">Normal</button>
+<button id="huge" type="button" onclick="huge()">Huge</button>
+<br/>
+<button id="green" type="button" onclick="green()">Green (height 5)</button>
+<button id="yellow" type="button" onclick="yellow()">Yellow (height 10)</button>
+<button id="orange" type="button" onclick="orange()">Orange (height 20)</button>
+<button id="red" type="button" onclick="red()">Red (height 50)</button>
+
+<br/>
+<button id="output()" onclick="output()">Output Heights</button>
+<br/>
+<canvas id="canvas" ></canvas>
+
+</body>
+</html>
