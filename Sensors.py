@@ -22,7 +22,14 @@ class SimSensors:
         #Note that initPos=0 is straight to the right but because of (0,0) being in the top right the angle is incrementer counter-clockwise
         self.pos=initPos 
         self.mazePic=mazePic
-        self.heights=heights
+        self.heights=[]
+        f=open(heights,'r')
+        for line in f:
+            cur=[]
+            line=line.split(',')
+            for height in line:
+                cur.append(int(height))
+            self.heights.append(cur)
 
     #Returns an opencv picture with the robot overlayed at its position on the mazePic
     def getPic(self):
@@ -135,7 +142,7 @@ class SimSensors:
         cv2.imshow('image',im)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-sim=SimSensors("BasicMaze.png",[],[200,200,0])
+sim=SimSensors("BasicMaze.png","BasicMazeHeights",[200,200,0])
 cv2.waitKey(0)
 sim.showBot()
 sim.move([300,300])
