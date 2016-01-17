@@ -1,0 +1,6 @@
+This allows you to take a picture of a maze and create a 2d array of the heights of the maze. You do this by drawing different colors over the top of the maze. First, click on "Choose File" and click on the maze picture. Then start drawing. When you are donw click "Output Heights". Then copy and paste that into a file and save that file. Give that filename as the input to SimSensor's constructor for the variable heights.
+
+
+If you do not draw over an area the height is 0 height units. The default color is green which is 5 height units. If you click on one of the other colors it will change to that color and the corresponding height. If you want to change the size of the brush click on the Small, Normal, or Huge button. Note that if you go up in size it will change the size of already drawn things (not sure why, too lazy to debug this), however, it will not change the heights of the new area that it covers. E.g. you draw with small brush height 5, on area A, then you click on brush Huge, and start drawing elsewhere. The marks over area A will grow, to area B, but only area A will be height 5. 
+
+Also, if you draw over the same area twice with different heights the last height to be applied will be the height.

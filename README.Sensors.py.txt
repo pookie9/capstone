@@ -22,4 +22,6 @@ SimSensors is a simulator of a robot moving through a scenario
 
 	   Note, the format for the heights file for a mxn picture is an m line text file, where each line has n numbers with a 
 	   comma as the delimiter. each number is the corresponding pixel's height in height units (no idea what to make these yet).
+	   use mazeMaker.html to take a picture of a maze and easily create the contents of the heights file. Look at README.mazeMaker.html
+	   .txt to see the instructions.
 	   
