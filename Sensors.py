@@ -1,24 +1,25 @@
 import cv2;
 import math;
 
+#Eventually will be the real deal
 class Sensors:
     def __init__(self):
         print "Initializing real sensors"
 
+#Simulator
 class SimSensors:
-    robotPic="robot.png"
-    robotSpeed=50 #speed in pixels per second
-    maxRange=50
-    minRange=1
-    scanAngleH=math.pi/4  #Horizontal field of vision of scan in radians
-    scanAngleV=math.pi/4  #Vertical field of vision of scan in radians
-    kinectHeight=5
 
     #mazePic is the path to the picture that is the background, heights is the corresponding 2D array of heights
     #initPos is the tuple of (x,y,orientation) in pixels
-    def __init__(self,mazePic, heights, initPos):
+    def __init__(self,mazePic,heights,initPos,kinectHeight=5,scanAngleV=math.pi/4,scanAngleH=math.pi/4,minRange=1,maxRange=50,robotSpeed=50,robotPic="robot.png"):
         print "Initializing simulated sensors"
-        self.robotPic
+        self.kinectHeight=kinectHeight #Height of the kinect on the robot
+        self.scanAngleV=scanAngleV       #Vertical field of vision of scan in radians
+        self.scanAngleH=scanAngleH       #Horizontal field of vision of scan in radians
+        self.minRange=minRange #minRange of Kinect
+        self.maxRange=maxRange #maxRange of Kinect
+        self.robotSpeed=50
+        self.robotPic=robotPic
         #Note that initPos=0 is straight to the right but because of (0,0) being in the top right the angle is incrementer counter-clockwise
         self.pos=initPos 
         self.mazePic=mazePic
@@ -33,7 +34,7 @@ class SimSensors:
 
     #Returns an opencv picture with the robot overlayed at its position on the mazePic
     def getPic(self):
-        rPic=cv2.imread(SimSensors.robotPic)
+        rPic=cv2.imread(self.robotPic)
         curPic=cv2.imread(self.mazePic)
         (robotW,robotH,t)=rPic.shape
         rPic=255-rPic #inverting colors to get rid of black from rotate on corners
@@ -111,13 +112,13 @@ class SimSensors:
         return points
     #Returns a list of five points, in order, center of field of view, leftmost point, rightmost point, lowest, highest
     def getFieldOfView(self):                
-        hSpan=SimSensors.maxRange*math.sin(SimSensors.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
-        vSpan=SimSensors.maxRange*math.sin(SimSensors.scanAngleH/2) #vertical peripheral distance from center at maxRange 
-        center=(int(self.pos[0]+math.cos(self.pos[2])*SimSensors.maxRange), int(self.pos[1]+math.sin(self.pos[2])*SimSensors.maxRange),SimSensors.kinectHeight)
-        leftPoint=(int(center[0]+hSpan*math.cos(self.pos[2]-math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]-math.pi/2)),SimSensors.kinectHeight)
-        rightPoint=(int(center[0]+hSpan*math.cos(self.pos[2]+math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]+math.pi/2)),SimSensors.kinectHeight)
-        highest=[center[0],center[1],SimSensors.kinectHeight+vSpan]
-        lowest=[center[0],center[1],SimSensors.kinectHeight-vSpan]
+        hSpan=SimSensors.maxRange*math.sin(self.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
+        vSpan=SimSensors.maxRange*math.sin(self.scanAngleH/2) #vertical peripheral distance from center at maxRange 
+        center=(int(self.pos[0]+math.cos(self.pos[2])*self.maxRange), int(self.pos[1]+math.sin(self.pos[2])*self.maxRange),self.kinectHeight)
+        leftPoint=(int(center[0]+hSpan*math.cos(self.pos[2]-math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]-math.pi/2)),self.kinectHeight)
+        rightPoint=(int(center[0]+hSpan*math.cos(self.pos[2]+math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]+math.pi/2)),self.kinectHeight)
+        highest=[center[0],center[1],self.kinectHeight+vSpan]
+        lowest=[center[0],center[1],self.kinectHeight-vSpan]
         return [center,leftPoint,rightPoint,lowest,highest]
 
     #newPos is the new position, len 2 tuple (x,y)
@@ -130,7 +131,7 @@ class SimSensors:
         #Now updating position and calculating time it would take
         self.pos=newPos
         dist=math.sqrt((self.pos[0]-newPos[0])**2+(self.pos[1]-newPos[1])**2)
-        t=dist/SimSensors.robotSpeed
+        t=dist/self.robotSpeed
         return t
         
     def showBot(self):
