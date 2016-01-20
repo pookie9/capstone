@@ -57,12 +57,12 @@ class SimSensors:
     def angle(a,b):
         if b[0]==a[0]:
             if b[1]>a[1]:
-                return math.pi
+                return math.pi/2
             else:
-                return 0
+                return math.pi/-2
         else:
             res=math.atan(float(b[1]-a[1])/float(b[0]-a[0]))
-            if (b[0]-a[0]<0 and b[1]-a[1]<0) or (b[0]-a[0]<0 and b[1]-a[1]>0):
+            if (b[0]-a[0]<=0 and b[1]-a[1]<=0) or (b[0]-a[0]<=0 and b[1]-a[1]>=0):
                 res+=math.pi
             return res
 
@@ -139,8 +139,8 @@ class SimSensors:
         return t
         
     def showBot(self):
-        im=sim.getPic()
-        points=sim.getFieldOfView()
+        im=self.getPic()
+        points=self.getFieldOfView()
         cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
@@ -149,12 +149,28 @@ class SimSensors:
         cv2.imshow('image',im)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-sim=SimSensors("BasicMaze.png","BasicMazeHeights",[200,200,0])
-cv2.waitKey(0)
-sim.showBot()
-sim.move([300,300])
-sim.showBot()
-sim.move([300,200])
-sim.showBot()
-sim.move([310,220])
-sim.showBot()
+
+#Example of how to move it around and visualize it, obviously do this from another file
+#sim=SimSensors("BasicMaze.png","BasicMazeHeights",[200,200,0])
+#cv2.waitKey(0)
+#sim.showBot()
+#sim.move([310,220])
+#sim.showBot()
+#sim.move([210,220])
+#sim.showBot()
+#sim.move([210,240])
+#sim.showBot()
+#sim.move([210,200])
+#sim.showBot()
+#sim.move([230,240])
+#sim.showBot()
+#sim.move([230,200])
+#sim.showBot()
+#sim.move([200,240])
+#sim.showBot()
+#sim.move([170,170])
+#sim.showBot()
+#sim.move([300,170])
+#sim.showBot()
+#sim.move([400,70])
+#sim.showBot()
