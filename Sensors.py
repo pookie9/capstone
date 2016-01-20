@@ -77,16 +77,20 @@ class SimSensors:
         #Figuring out the corner points on the outside of the sphere
         (junk, leftPoint,rightPoint,lowest,highest)=self.getFieldOfView()
         #Create the rays that go from the center and hit each of the outside points, treat as 2D, represented as length and slope 
-        angle=SimSensors.angle(leftPoint,rightPoint)-math.pi/2
+        angle=SimSensors.angle((leftPoint[1],leftPoint[0]),(rightPoint[1],rightPoint[0]))-math.pi/2
         rays=[]
         i=0
         prev=(-1,-1)
         print angle
-        print leftPoint
-        print rightPoint
+        print "leftPoint: "+str(leftPoint)
+        print "rightPoint: "+str(rightPoint)
+        print "angle: "+str(angle)
         while True:
             i+=1
-            (x,y)=(int(leftPoint[0]+math.cos(angle)*i),int(leftPoint[1]+math.sin(angle)*i))
+            (x,y)=(int(leftPoint[0]+math.cos(angle)*i),int(leftPoint[1]-math.sin(angle)*i))
+            #print (x,y)
+            #import time
+            #time.sleep(1)
             if (rightPoint[0]-leftPoint[0])*(x-rightPoint[0])>=0 and (rightPoint[1]-leftPoint[1])*(y-rightPoint[1])>=0:
                 break
             if prev[0]!=x or prev[1]!=y:#Checking for duplicates
@@ -94,13 +98,6 @@ class SimSensors:
             prev=[x,y]
         print rays
         rays.append((SimSensors.angle(self.pos,rightPoint),SimSensors.euclid(self.pos,rightPoint)))
-        """
-        To figure out which points are viewable i.e. not blocked by other objects in front of them I make the assumption that
-        there are no overhanging objects, this limits the simulator slightly, but is good enough.
-        Then for each ray I go along its trajectory (starting at the center of the sphere)
-        and keep track of of the up/down angle that it is going at assuming it hits
-        the top of objects. Each time I hit a new object I add that to the 3D point cloud
-        """        
         points=[]
         #Tracing each ray from the beginning...
         for ray in rays:
@@ -144,8 +141,7 @@ class SimSensors:
         cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
-#        points=self.getKinectData()
-#        print points
+        points=self.getKinectData()
         cv2.imshow('image',im)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
