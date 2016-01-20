@@ -77,10 +77,13 @@ class SimSensors:
         #Figuring out the corner points on the outside of the sphere
         (junk, leftPoint,rightPoint,lowest,highest)=self.getFieldOfView()
         #Create the rays that go from the center and hit each of the outside points, treat as 2D, represented as length and slope 
-        angle=SimSensors.angle(leftPoint,rightPoint)
+        angle=SimSensors.angle(leftPoint,rightPoint)-math.pi/2
         rays=[]
         i=0
         prev=(-1,-1)
+        print angle
+        print leftPoint
+        print rightPoint
         while True:
             i+=1
             (x,y)=(int(leftPoint[0]+math.cos(angle)*i),int(leftPoint[1]+math.sin(angle)*i))
@@ -89,6 +92,7 @@ class SimSensors:
             if prev[0]!=x or prev[1]!=y:#Checking for duplicates
                 rays.append((SimSensors.angle(self.pos,(x,y)),SimSensors.euclid(self.pos,(x,y))))
             prev=[x,y]
+        print rays
         rays.append((SimSensors.angle(self.pos,rightPoint),SimSensors.euclid(self.pos,rightPoint)))
         """
         To figure out which points are viewable i.e. not blocked by other objects in front of them I make the assumption that
@@ -112,8 +116,8 @@ class SimSensors:
         return points
     #Returns a list of five points, in order, center of field of view, leftmost point, rightmost point, lowest, highest
     def getFieldOfView(self):                
-        hSpan=SimSensors.maxRange*math.sin(self.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
-        vSpan=SimSensors.maxRange*math.sin(self.scanAngleH/2) #vertical peripheral distance from center at maxRange 
+        hSpan=self.maxRange*math.sin(self.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
+        vSpan=self.maxRange*math.sin(self.scanAngleH/2) #vertical peripheral distance from center at maxRange 
         center=(int(self.pos[0]+math.cos(self.pos[2])*self.maxRange), int(self.pos[1]+math.sin(self.pos[2])*self.maxRange),self.kinectHeight)
         leftPoint=(int(center[0]+hSpan*math.cos(self.pos[2]-math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]-math.pi/2)),self.kinectHeight)
         rightPoint=(int(center[0]+hSpan*math.cos(self.pos[2]+math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]+math.pi/2)),self.kinectHeight)
@@ -140,6 +144,8 @@ class SimSensors:
         cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
+#        points=self.getKinectData()
+#        print points
         cv2.imshow('image',im)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -147,5 +153,8 @@ sim=SimSensors("BasicMaze.png","BasicMazeHeights",[200,200,0])
 cv2.waitKey(0)
 sim.showBot()
 sim.move([300,300])
-sim.getKinectData()
+sim.showBot()
+sim.move([300,200])
+sim.showBot()
+sim.move([310,220])
 sim.showBot()
