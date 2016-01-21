@@ -1,5 +1,6 @@
 import cv2;
 import math;
+import numpy as np;
 
 #Eventually will be the real deal
 class Sensors:
@@ -96,20 +97,26 @@ class SimSensors:
             if prev[0]!=x or prev[1]!=y:#Checking for duplicates
                 rays.append((SimSensors.angle(self.pos,(x,y)),SimSensors.euclid(self.pos,(x,y))))
             prev=[x,y]
-        print rays
         rays.append((SimSensors.angle(self.pos,rightPoint),SimSensors.euclid(self.pos,rightPoint)))
         points=[]
         #Tracing each ray from the beginning...
         for ray in rays:
-            lowestAngle=self.scanAngleV#Keeps track of the angle that it can see that is not blocked by another object
+            lowestAngle=-self.scanAngleV#Keeps track of the angle that it can see that is not blocked by another object
             for i in range(int(ray[1])+1):
                 x=int(self.pos[0]+i*math.cos(ray[0]))
                 y=int(self.pos[1]+i*math.sin(ray[0]))
-                z=self.kinectHeight-i*math.sin(lowestAngle)#Minimum height that can be seen at this point
+                if min(x,y)<0 or max(x-len(self.heights),y-len(self.heights[0]))>0:
+                    continue
+                z=self.kinectHeight+i*math.sin(lowestAngle)#Minimum height that can be seen at this point
                 if self.heights[x][y]>z:
-                    points.append((x,y,z))
+                    points.append((x,y,self.heights[x][y]))
                     #setting lowestAngle to angle from kinect to top of object
-                    lowestAngle=math.atan(float(self.kinectHeight-self.heights[x][y])/float(i))
+                    if self.kinectHeight>self.heights[x][y]:
+                        lowestAngle=-math.asin(float(self.kinectHeight-self.heights[x][y])/float(i))
+                    elif self.kinectHeight<self.heights[x][y]:
+                        lowestAngle=math.asin(float(self.heights[x][y]-self.kinectHeight)/float(i))
+                    else:
+                        lowestAngle=0.0    
         return points
     #Returns a list of five points, in order, center of field of view, leftmost point, rightmost point, lowest, highest
     def getFieldOfView(self):                
@@ -134,7 +141,18 @@ class SimSensors:
         dist=math.sqrt((self.pos[0]-newPos[0])**2+(self.pos[1]-newPos[1])**2)
         t=dist/self.robotSpeed
         return t
-        
+    
+    def showHeights(self):
+        maxH=50.0
+        img=np.zeros((len(self.heights[0]),len(self.heights),3), np.uint8)
+        for i in range(len(self.heights)):
+            for j in range(len(self.heights[0])):
+                if self.heights[i][j]==0:
+                    img[j,i]=(255,255,255)
+                else:
+                    img[j,i]=(0,0,255-(self.heights[i][j])*127/maxH)
+        cv2.imshow('img',img)
+
     def showBot(self):
         im=self.getPic()
         points=self.getFieldOfView()
@@ -142,6 +160,18 @@ class SimSensors:
         cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
         points=self.getKinectData()
+        maxH=50.0
+        minH=0.0
+        for point in points:
+            h=point[2]
+            if point[2]<minH:
+                h=minH
+            if point[2]>maxH:
+                h=maxH
+            if h==minH:    
+                im[point[1],point[0]]=(0,255,0)
+            else:
+                im[point[1],point[0]]=(0,0,255-int(127*(h-minH)/maxH))
         cv2.imshow('image',im)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
