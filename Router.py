@@ -62,13 +62,13 @@ def extendWalls(driveMap, radius):
                 driveMap[xx][min(len(driveMap[0])-1, yy+newRadius)] = locHeight
 
     yPixels = len(driveMap[0])
-    for xx in range(len(driveMap)):
+"""    for xx in range(len(driveMap)):
         for yy in range(len(driveMap[0])):
             sys.stdout.write(str(driveMap[xx][yy]))
             if yy != yPixels-1:
                 sys.stdout.write(",")
         print ""
-    sys.exit()
+    sys.exit()"""
                              
 #takes (2d ints) heightmap, (int, int) start, (int, int) finish, and (float/int) driveability threshold
 #Will return None if the finish is not connected to the start

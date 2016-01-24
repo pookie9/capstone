@@ -12,8 +12,9 @@ class SimSensors:
 
     #mazePic is the path to the picture that is the background, heights is the corresponding 2D array of heights
     #initPos is the tuple of (x,y,orientation) in pixels
-    def __init__(self,mazePic,heights,initPos,kinectHeight=5,scanAngleV=math.pi/4,scanAngleH=math.pi/4,minRange=1,maxRange=50,robotSpeed=50,robotPic="robot.png"):
+    def __init__(self,mazePic,heights,initPos,kinectHeight=5,scanAngleV=math.pi/4,scanAngleH=math.pi/4,minRange=1,maxRange=50,robotSpeed=50,robotPic="robot.png",targetPos=None):
         print "Initializing simulated sensors"
+        self.targetPos=targetPos
         self.kinectHeight=kinectHeight #Height of the kinect on the robot
         self.scanAngleV=scanAngleV       #Vertical field of vision of scan in radians
         self.scanAngleH=scanAngleH       #Horizontal field of vision of scan in radians
@@ -32,7 +33,8 @@ class SimSensors:
             for height in line:
                 cur.append(int(height))
             self.heights.append(cur)
-
+        self.height=len(self.heights[0])
+        self.width=len(self.heights)
     #Returns an opencv picture with the robot overlayed at its position on the mazePic
     def getPic(self):
         rPic=cv2.imread(self.robotPic)
@@ -112,12 +114,37 @@ class SimSensors:
                     points.append((x,y,self.heights[x][y]))
                     #setting lowestAngle to angle from kinect to top of object
                     if self.kinectHeight>self.heights[x][y]:
-                        lowestAngle=-math.asin(float(self.kinectHeight-self.heights[x][y])/float(i))
+                        if i==0:
+                            if self.kinectHeight-self.heights[x][y]>0:
+                                lowestAngle=math.pi/2
+                            else:
+                                loestAngle=math.pi/-2
+                        else:
+                            lowestAngle=-math.atan(float(self.kinectHeight-self.heights[x][y])/float(i))
                     elif self.kinectHeight<self.heights[x][y]:
-                        lowestAngle=math.asin(float(self.heights[x][y]-self.kinectHeight)/float(i))
+                        if i==0:
+                            if self.heights[x][y]-self.kinectHeight>0:
+                                lowestAngle=math.pi/2
+                            else:
+                                lowestAngle=math.pi/-2
+                        else:
+                            lowestAngle=math.atan(float(self.heights[x][y]-self.kinectHeight)/float(i))
                     else:
                         lowestAngle=0.0    
         return points
+    def getPos(self):
+        return self.pos
+    #Returns a height by width array with 1 if a place is driveable, 2 if it is not driveable
+    def getDriveable(self):
+        heights=self.getKinectData()
+        driveable=np.zeros((self.height, self.width))
+        for h in heights:
+            if h[2]>0:
+                driveable[h[1],h[0]]=1
+            if h[2]==0:
+                driveable[h[1],h[0]]=2
+        return driveable
+
     #Returns a list of five points, in order, center of field of view, leftmost point, rightmost point, lowest, highest
     def getFieldOfView(self):                
         hSpan=self.maxRange*math.sin(self.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
@@ -131,16 +158,41 @@ class SimSensors:
 
     #newPos is the new position, len 2 tuple (x,y)
     #moves the robot to newPos in a straight line, updates self.pos
-    #returns the amount of time this would take in seconds
+    #Also, checks that it can move there, if it can't it will move until it sees the wall that it would run into and stops
     def move(self, newPos):
         assert newPos[1]!=self.pos[1] or newPos[0]!=self.pos[0], "Move to the same place as it currently is..."
         newOrientation=SimSensors.angle(self.pos,newPos)
         newPos.append(newOrientation)
+        
+        #Checking that path there is clear, not, treats it like point. Not true, but good enough for now
+        clear=True
+        badPoint=None
+        for i in range(int(SimSensors.euclid(self.pos,newPos))+1):
+            curX=self.pos[0]+i*math.cos(newOrientation)
+            curY=self.pos[1]+i*math.sin(newOrientation)
+            if self.heights[int(curX)][int(curY)]>0:
+                clear=False
+                badPoint=(int(curX),int(curY))
+
+        if not clear:
+            print "Obstuction in the way of move"
+            #Now figure out where it sees that it is not clear....
+            dist=SimSensors.euclid(badPoint, self.pos)
+            if dist<self.maxRange: #Can see from curPos
+                self.pos=(self.pos[0],self.pos[1],newOrientation)
+                return
+            else:#Can't see from curPos, move to point where it sees it...
+                for i in range(int(SimSensors.euclid(self.pos,newPos)+1)):
+                    curX=self.pos[0]+i*math.cos(newOrientation)
+                    curY=self.pos[1]+i*math.sin(newOrientation)
+                    if SimSensors.euclid((int(curX),int(curY)),badPoint)<self.maxRange:
+                        self.pos=(int(curX),int(curY),newOrientation)
+                        return
+            
+
         #Now updating position and calculating time it would take
         self.pos=newPos
         dist=math.sqrt((self.pos[0]-newPos[0])**2+(self.pos[1]-newPos[1])**2)
-        t=dist/self.robotSpeed
-        return t
     
     def showHeights(self):
         maxH=50.0
@@ -159,6 +211,8 @@ class SimSensors:
         cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
         cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
+        if self.targetPos!=None:
+            cv2.circle(im,self.targetPos,10,(0,0,255))
         points=self.getKinectData()
         maxH=50.0
         minH=0.0
@@ -176,27 +230,3 @@ class SimSensors:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-#Example of how to move it around and visualize it, obviously do this from another file
-#sim=SimSensors("BasicMaze.png","BasicMazeHeights",[200,200,0])
-#cv2.waitKey(0)
-#sim.showBot()
-#sim.move([310,220])
-#sim.showBot()
-#sim.move([210,220])
-#sim.showBot()
-#sim.move([210,240])
-#sim.showBot()
-#sim.move([210,200])
-#sim.showBot()
-#sim.move([230,240])
-#sim.showBot()
-#sim.move([230,200])
-#sim.showBot()
-#sim.move([200,240])
-#sim.showBot()
-#sim.move([170,170])
-#sim.showBot()
-#sim.move([300,170])
-#sim.showBot()
-#sim.move([400,70])
-#sim.showBot()
