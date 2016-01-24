@@ -84,10 +84,6 @@ class SimSensors:
         rays=[]
         i=0
         prev=(-1,-1)
-        print angle
-        print "leftPoint: "+str(leftPoint)
-        print "rightPoint: "+str(rightPoint)
-        print "angle: "+str(angle)
         while True:
             i+=1
             (x,y)=(int(leftPoint[0]+math.cos(angle)*i),int(leftPoint[1]-math.sin(angle)*i))
@@ -134,15 +130,17 @@ class SimSensors:
         return points
     def getPos(self):
         return self.pos
-    #Returns a height by width array with 1 if a place is driveable, 2 if it is not driveable
+    def getTargetPos(self):
+        return self.targetPos
+    #Returns a height by width array with 1 if a place is driveable, 2 if it is not driveable, 0 if unknown
     def getDriveable(self):
         heights=self.getKinectData()
         driveable=np.zeros((self.height, self.width))
         for h in heights:
             if h[2]>0:
-                driveable[h[1],h[0]]=1
-            if h[2]==0:
                 driveable[h[1],h[0]]=2
+            if h[2]==0:
+                driveable[h[1],h[0]]=1
         return driveable
 
     #Returns a list of five points, in order, center of field of view, leftmost point, rightmost point, lowest, highest
@@ -160,8 +158,10 @@ class SimSensors:
     #moves the robot to newPos in a straight line, updates self.pos
     #Also, checks that it can move there, if it can't it will move until it sees the wall that it would run into and stops
     def move(self, newPos):
-        assert newPos[1]!=self.pos[1] or newPos[0]!=self.pos[0], "Move to the same place as it currently is..."
+
         newOrientation=SimSensors.angle(self.pos,newPos)
+        print "New Orientation: "+str(newOrientation)
+        assert newOrientation!=self.pos[2] or newPos[1]!=self.pos[1] or newPos[0]!=self.pos[0], "Move to the same place as it currently is..."
         newPos.append(newOrientation)
         
         #Checking that path there is clear, not, treats it like point. Not true, but good enough for now
@@ -205,7 +205,7 @@ class SimSensors:
                     img[j,i]=(0,0,255-(self.heights[i][j])*127/maxH)
         cv2.imshow('img',img)
 
-    def showBot(self):
+    def showBot(self,waypoints=None):
         im=self.getPic()
         points=self.getFieldOfView()
         cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
@@ -226,7 +226,13 @@ class SimSensors:
                 im[point[1],point[0]]=(0,255,0)
             else:
                 im[point[1],point[0]]=(0,0,255-int(127*(h-minH)/maxH))
+        if waypoints!=None:
+            prev=tuple(self.getPos()[0:2])
+            for point in waypoints:
+                point=(point[1],point[0])
+                cv2.line(im,prev,point,(255,0,0),2)
+                cv2.circle(im,point,5,(255,0,0))
+                prev=point
         cv2.imshow('image',im)
         cv2.waitKey(0)
-        cv2.destroyAllWindows()
 

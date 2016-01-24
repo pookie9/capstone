@@ -189,5 +189,11 @@ def getRoute(driveable,robotPos,targetPos, radius, driveabilityThreshold):
 #returns (totalDistance, path)
 def getRouteWP(driveable,robotPos,targetPos, radius, driveabilityThreshold):
     extendWalls(driveable, math.ceil(radius))
-    distPoints = getWayPoints(driveable, robotPos, targetPos, driveabilityThreshold)
-    return distPoints
+    distPoints = getWayPoints(driveable, robotPos, targetPos, driveabilityThreshold)[1]
+    distPoints.reverse()
+    distPoints=distPoints[1:]
+    t=[]
+    for point in distPoints:
+        point=point.split(',')
+        t.append(map(int,point))
+    return t

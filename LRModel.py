@@ -41,20 +41,22 @@ class LRModel:
         testPred=predLabels[self.unknownIndices]
         print "Logistic regression using raw pixel features:\n%s\n" % (metrics.classification_report(testLabels, testPred))
 
-    def predictAndShow(self,trueLabels=None):
+    def predictAndShow(self,trueLabels=None,targetPos=None,selfPos=None):
         preds=self.predict()
         preds=numpy.resize(preds,(self.height,self.width))
-        predDriveable=numpy.where(preds==2)
+        predDriveable=numpy.where(preds==1)
         predPic=numpy.zeros((self.height,self.width,3))
         predPic[predDriveable]=(255,255,255)
+        if targetPos:
+            cv2.circle(predPic,targetPos,10,(0,0,255))
+        if selfPos:
+            cv2.circle(predPic,tuple(selfPos[0:2]),10,(0,0,255))
         cv2.imshow("Predicted",predPic)
 
         if trueLabels!=None:
-            trueDriveable=numpy.where(trueLabels==2)
+            trueDriveable=numpy.where(trueLabels==1)
             truePic=numpy.zeros((self.height,self.width,3))
             truePic[trueDriveable]=(255,255,255)
             cv2.imshow("True",truePic)
 
-
         cv2.waitKey(0)
-        cv2.destroyAllWindows()
