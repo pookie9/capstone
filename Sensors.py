@@ -12,8 +12,9 @@ class SimSensors:
 
     #mazePic is the path to the picture that is the background, heights is the corresponding 2D array of heights
     #initPos is the tuple of (x,y,orientation) in pixels
-    def __init__(self,mazePic,heights,initPos,kinectHeight=5,scanAngleV=math.pi/4,scanAngleH=math.pi/4,minRange=1,maxRange=50,robotSpeed=50,robotPic="robot.png",targetPos=None):
+    def __init__(self,mazePic,heights,initPos,kinectHeight=5,scanAngleV=math.pi/4,scanAngleH=math.pi/4,minRange=1,maxRange=50,robotSpeed=50,robotPic="robot.png",targetPos=None,radius=10):
         print "Initializing simulated sensors"
+        self.radius=radius
         self.targetPos=targetPos
         self.kinectHeight=kinectHeight #Height of the kinect on the robot
         self.scanAngleV=scanAngleV       #Vertical field of vision of scan in radians
@@ -43,7 +44,10 @@ class SimSensors:
         rPic=255-rPic #inverting colors to get rid of black from rotate on corners
         M=cv2.getRotationMatrix2D((robotW/2,robotH/2),math.degrees(self.pos[2]),1)
         rPic=cv2.warpAffine(rPic,M,(robotW,robotH))#Rotating the robot to its correct orientation
+
         rPic=255-rPic #inverting back to normal
+        rPic=cv2.resize(rPic,(2*self.radius,self.radius*2))
+        (robotW,robotH,t)=rPic.shape
         for i in range(robotW):
             for j in range(robotH):
                 if rPic[i,j][0]<200 or rPic[i,j][1]<200 or rPic[i,j][2]<200: #Not just white, actual robot
@@ -101,11 +105,12 @@ class SimSensors:
         for ray in rays:
             lowestAngle=-self.scanAngleV#Keeps track of the angle that it can see that is not blocked by another object
             for i in range(int(ray[1])+1):
-                x=int(self.pos[0]+i*math.cos(ray[0]))
-                y=int(self.pos[1]+i*math.sin(ray[0]))
+                x=int(self.getFrontPos()[0]+i*math.cos(ray[0]))
+                y=int(self.getFrontPos()[1]+i*math.sin(ray[0]))
                 if min(x,y)<0 or max(x-len(self.heights),y-len(self.heights[0]))>0:
                     continue
                 z=self.kinectHeight+i*math.sin(lowestAngle)#Minimum height that can be seen at this point
+                print(x,y)
                 if self.heights[x][y]>z:
                     points.append((x,y,self.heights[x][y]))
                     #setting lowestAngle to angle from kinect to top of object
@@ -114,7 +119,7 @@ class SimSensors:
                             if self.kinectHeight-self.heights[x][y]>0:
                                 lowestAngle=math.pi/2
                             else:
-                                loestAngle=math.pi/-2
+                                lowestAngle=math.pi/-2
                         else:
                             lowestAngle=-math.atan(float(self.kinectHeight-self.heights[x][y])/float(i))
                     elif self.kinectHeight<self.heights[x][y]:
@@ -132,6 +137,8 @@ class SimSensors:
         return self.pos
     def getTargetPos(self):
         return self.targetPos
+    def getFrontPos(self):
+        return (int(self.pos[0]+self.radius*math.cos(self.pos[2])),int(self.pos[1]+self.radius*math.sin(self.pos[2])))
     #Returns a height by width array with 1 if a place is driveable, 2 if it is not driveable, 0 if unknown
     def getDriveable(self):
         heights=self.getKinectData()
@@ -147,7 +154,7 @@ class SimSensors:
     def getFieldOfView(self):                
         hSpan=self.maxRange*math.sin(self.scanAngleH/2) #horizontal peripheral distance from center at maxRange 
         vSpan=self.maxRange*math.sin(self.scanAngleH/2) #vertical peripheral distance from center at maxRange 
-        center=(int(self.pos[0]+math.cos(self.pos[2])*self.maxRange), int(self.pos[1]+math.sin(self.pos[2])*self.maxRange),self.kinectHeight)
+        center=(int(self.getFrontPos()[0]+math.cos(self.pos[2])*self.maxRange), int(self.getFrontPos()[1]+math.sin(self.pos[2])*self.maxRange),self.kinectHeight)
         leftPoint=(int(center[0]+hSpan*math.cos(self.pos[2]-math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]-math.pi/2)),self.kinectHeight)
         rightPoint=(int(center[0]+hSpan*math.cos(self.pos[2]+math.pi/2)),int(center[1]+hSpan*math.sin(self.pos[2]+math.pi/2)),self.kinectHeight)
         highest=[center[0],center[1],self.kinectHeight+vSpan]
@@ -168,8 +175,8 @@ class SimSensors:
         clear=True
         badPoint=None
         for i in range(int(SimSensors.euclid(self.pos,newPos))+1):
-            curX=self.pos[0]+i*math.cos(newOrientation)
-            curY=self.pos[1]+i*math.sin(newOrientation)
+            curX=self.getFrontPos()[0]+i*math.cos(newOrientation)
+            curY=self.getFrontPos()[1]+i*math.sin(newOrientation)
             if self.heights[int(curX)][int(curY)]>0:
                 clear=False
                 badPoint=(int(curX),int(curY))
@@ -208,9 +215,9 @@ class SimSensors:
     def showBot(self,waypoints=None):
         im=self.getPic()
         points=self.getFieldOfView()
-        cv2.line(im, (self.pos[0],self.pos[1]), points[0][0:2],(0,0,255),1)
-        cv2.line(im, (self.pos[0],self.pos[1]), points[1][0:2],(120,120,120),1)
-        cv2.line(im, (self.pos[0],self.pos[1]), points[2][0:2],(120,120,120),1)
+        cv2.line(im, (self.getFrontPos()[0],self.getFrontPos()[1]), points[0][0:2],(0,0,255),1)
+        cv2.line(im, (self.getFrontPos()[0],self.getFrontPos()[1]), points[1][0:2],(120,120,120),1)
+        cv2.line(im, (self.getFrontPos()[0],self.getFrontPos()[1]), points[2][0:2],(120,120,120),1)
         if self.targetPos!=None:
             cv2.circle(im,self.targetPos,10,(0,0,255))
         points=self.getKinectData()

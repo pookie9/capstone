@@ -25,11 +25,11 @@ class Robot:
                         cur.append(1)
                 self.trueLabels.append(cur)
             self.background=cv2.imread(backgroundPic)
-            self.sensors=Sensors.SimSensors(backgroundPic,heights,startPos,robotPic=rPic,maxRange=mRange,targetPos=tPos)
+            self.sensors=Sensors.SimSensors(backgroundPic,heights,startPos,robotPic=rPic,maxRange=mRange,targetPos=tPos,radius=self.radius)
             self.knownLabels=None
     @staticmethod
-    def createSim(heights,robotPic,backgroundPic,startPos,targetPos,maxRange):
-        r= Robot(True,heights,robotPic,backgroundPic,startPos,targetPos,maxRange)
+    def createSim(heights,robotPic,backgroundPic,startPos,targetPos,maxRange,radius=10):
+        r= Robot(True,heights,robotPic,backgroundPic,startPos,targetPos,maxRange,radius=radius)
         return r
     @staticmethod
     def createBot():
@@ -49,7 +49,6 @@ class Robot:
     def run(self):
         while True:
             preds=self.learnAndPredict()
-            print self.sensors.getPos()
             waypoints=Router.getRouteWP(preds.tolist(),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),(self.sensors.getPos()[1],self.sensors.getPos()[0]),self.radius,1.5)
             while waypoints[0][0]==int(self.sensors.getPos()[1]) and waypoints[0][1]==int(self.sensors.getPos()[0]):
                 waypoints=waypoints[1:]
