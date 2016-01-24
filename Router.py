@@ -158,10 +158,10 @@ def diffAngle(prevWP, prevPoint, curPoint):
 #Gives points in route that are straight lines from each other
 def getWayPoints(array, start, finish, driveabilityThreshold):
     distPath = dijk(array, start, finish, driveabilityThreshold)
-    start = distPath[0]
+#    print distPath[1]
+    start = distPath[1][0]
     wayPoints = []
 
-    wayPoints.append(distPath[1][0])
     prevWP = distPath[1].pop(0) #THE START IS NO LONGER IN PATH
     prevPoint = prevWP
     for point in distPath[1]:
