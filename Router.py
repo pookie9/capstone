@@ -19,8 +19,8 @@ minDriveability = 1 #a tile that is not at least this driveable may as well be a
 #Gives list of neighboring tiles of the node. Only tiles below the driveability threshold are included.
 def getNeighbors(node, array, driveabilityThreshold):
     neighbors = set()
-    xx = int(node.split(',')[0])
-    yy = int(node.split(',')[1])
+    xx = node[0]
+    yy = node[1]
     xLen = len(array)-1
     yLen = len(array[0])-1
     neighbors.add((max(0,xx-1), max(0,yy-1)))
@@ -36,7 +36,7 @@ def getNeighbors(node, array, driveabilityThreshold):
     finalNeighbors = []
     for loc in neighbors:
         if array[loc[0]][loc[1]] < driveabilityThreshold:
-            finalNeighbors.append(str(loc[0]) + "," + str(loc[1]))
+            finalNeighbors.append((loc[0],loc[1]))
             
     return finalNeighbors
 
@@ -72,6 +72,7 @@ def extendWalls(driveMap, radius):
                              
 #takes (2d ints) heightmap, (int, int) start, (int, int) finish, and (float/int) driveability threshold
 #Will return None if the finish is not connected to the start
+#todo: distance doesn't seem to work
 def dijk(array, start, finish, driveabilityThreshold):
     allVerticies = []
     visited = set()
@@ -80,13 +81,11 @@ def dijk(array, start, finish, driveabilityThreshold):
     prev = {}
     xFinish = finish[0]
     yFinish = finish[1]
-    start = str(start[0]) + "," + str(start[1])
-    finish = str(finish[0]) + "," + str(finish[1])
 
     heapq.heappush(allVerticies, (0, start))
     for xx in range(len(array)):
         for yy in range(len(array[0])):
-            newVertex = str(xx) + "," + str(yy)
+            newVertex = (xx,yy)
             if newVertex != start:
                 prev[newVertex] = (None, float('inf'))
             else:
@@ -111,10 +110,10 @@ def dijk(array, start, finish, driveabilityThreshold):
             return (dist, path)
                 
         for neighbor in getNeighbors(node, array, driveabilityThreshold):
-            xNode = int(node.split(',')[0])
-            yNode = int(node.split(',')[1])
-            xNeighbor = int(neighbor.split(',')[0])
-            yNeighbor = int(neighbor.split(',')[1])
+            xNode = node[0]
+            yNode = node[1]
+            xNeighbor = neighbor[0]
+            yNeighbor = neighbor[1]
             xDistance = -1
             yDistance = math.fabs(array[xNeighbor][yNeighbor] - array[xNode][yNode])
             if xNeighbor != xNode and yNeighbor != yNode:
@@ -129,20 +128,22 @@ def dijk(array, start, finish, driveabilityThreshold):
                 heapq.heappush(allVerticies, (alt+euclidDist, neighbor))
 
     print "FAILED TO FIND THE FINISHING POINT!"
+    #if failed, look for alternate finish that may reveal more data. Otherwise
+    #kill self
     return None
 
 #checks if current point should be set to a waypoint or not. If it's a different angle relative to the previous waypoint, then it should. Otherwise, keep going.
 def diffAngle(prevWP, prevPoint, curPoint):
-    xPrevWP = int(prevWP.split(',')[0])
-    yPrevWP = int(prevWP.split(',')[1])
-    xCurPoint = int(curPoint.split(',')[0])
-    yCurPoint = int(curPoint.split(',')[1])
+    xPrevWP = prevWP[0]
+    yPrevWP = prevWP[1]
+    xCurPoint = curPoint[0]
+    yCurPoint = curPoint[1]
     adjacent1 = math.fabs(xPrevWP-xCurPoint)
     adjacent2 = math.fabs(yPrevWP-yCurPoint)
     if adjacent1 <= 1.0 and adjacent2 <= 1.0: 
         return False
-    xPrevPoint = int(prevPoint.split(',')[0])
-    yPrevPoint = int(prevPoint.split(',')[1])
+    xPrevPoint = prevPoint[0]
+    yPrevPoint = prevPoint[1]
 
     if yPrevWP - yPrevPoint != 0:
         anglePrev = float(xPrevWP-xPrevPoint)/float(yPrevWP-yPrevPoint)
@@ -168,7 +169,7 @@ def getWayPoints(array, start, finish, driveabilityThreshold):
             prevWP = point
             wayPoints.append(point)
         prevPoint = point
-    wayPoints.append(str(finish[0]) + ',' + str(finish[1]))
+    wayPoints.append(finish)
     distPath[1].insert(0, start) #START IS BACK IN THE PATH
     return (distPath[0], wayPoints)
     
@@ -186,14 +187,15 @@ def getRoute(driveable,robotPos,targetPos, radius, driveabilityThreshold):
     return distPoints
 
 #(2d int, (int, int), (int, int), float, True)
-#returns (totalDistance, path)
+#returns list of points. But there is work done to keep track of distances
 def getRouteWP(driveable,robotPos,targetPos, radius, driveabilityThreshold):
     extendWalls(driveable, math.ceil(radius))
     distPoints = getWayPoints(driveable, robotPos, targetPos, driveabilityThreshold)[1]
-    distPoints.reverse()
-    distPoints=distPoints[1:]
-    t=[]
-    for point in distPoints:
-        point=point.split(',')
-        t.append(map(int,point))
-    return t
+    return distPoints
+
+#distPoints=distPoints[1:]
+#    t=[]
+#    for point in distPoints:
+#        point=point.split(',')
+#        t.append(map(int,point))
+#return t
