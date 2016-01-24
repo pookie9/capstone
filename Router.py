@@ -170,7 +170,7 @@ def getWayPoints(array, start, finish, driveabilityThreshold):
             wayPoints.append(point)
         prevPoint = point
     wayPoints.append(finish)
-    distPath[1].insert(0, start) #START IS BACK IN THE PATH
+    #distPath[1].insert(0, start) #START IS BACK IN THE PATH
     return (distPath[0], wayPoints)
     
 #    This should be super easy to get working at a basic level, however there are many interesting ways we can expand. Maybe it will decide everything above .5 is driveable and everything below is not driveable and just run djkstras on that. Or maybe it will decide to do most likely to succeed path, e.g. if there are a lot of .50001s in a row you might want to avoid that area. This could be done by computing products (sum of logs really) or some other similar method.
