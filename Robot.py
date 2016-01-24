@@ -49,7 +49,7 @@ class Robot:
     def run(self):
         while True:
             preds=self.learnAndPredict()
-            waypoints=Router.getRouteWP(preds.tolist(),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),(self.sensors.getPos()[1],self.sensors.getPos()[0]),self.radius,1.5)
+            waypoints=Router.getRouteWP(preds.tolist(),(self.sensors.getPos()[1],self.sensors.getPos()[0]),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),self.radius,1.5)
             while waypoints[0][0]==int(self.sensors.getPos()[1]) and waypoints[0][1]==int(self.sensors.getPos()[0]):
                 waypoints=waypoints[1:]
             print "Cur Pos"+str(self.sensors.getPos())

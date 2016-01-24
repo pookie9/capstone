@@ -110,7 +110,8 @@ class SimSensors:
                 if min(x,y)<0 or max(x-len(self.heights),y-len(self.heights[0]))>0:
                     continue
                 z=self.kinectHeight+i*math.sin(lowestAngle)#Minimum height that can be seen at this point
-                print(x,y)
+                if x<0 or x>=len(self.heights) or y<0 or y>=len(self.heights[0]):
+                    continue
                 if self.heights[x][y]>z:
                     points.append((x,y,self.heights[x][y]))
                     #setting lowestAngle to angle from kinect to top of object
