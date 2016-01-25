@@ -49,7 +49,7 @@ class Robot:
         return preds
 
     def run(self):
-        waypoints=()
+        waypoints=None
         dist=-1
         while True:
             preds=self.learnAndPredict()
