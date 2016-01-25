@@ -54,7 +54,9 @@ class Robot:
         while True:
             preds=self.learnAndPredict()
             cv2.waitKey(0)
-            (dist,waypoints)=Router.getRouteWP(preds.tolist(),(dist,waypoints),(self.sensors.getPos()[1],self.sensors.getPos()[0]),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),self.radius,1.5)
+            t=Router.getRouteWP(preds.tolist(),(dist,waypoints),(self.sensors.getPos()[1],self.sensors.getPos()[0]),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),self.radius,1.5)
+            print t
+            (dist,waypoints)=t
             self.sensors.showBot(waypoints)            
             cv2.waitKey(0)
             print "Cur Pos"+str(self.sensors.getPos())
