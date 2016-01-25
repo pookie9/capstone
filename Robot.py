@@ -7,6 +7,7 @@ import time;
 
 class Robot:
     """Used to call either work with SimSensor or Sensors"""
+    moveDistance=50#Minimum number of pixels to move
     def __init__(self,isSim,heights=None,rPic=None,backgroundPic=None,startPos=None, tPos=None,mRange=None,radius=5):
         self.isSim=isSim
         self.radius=radius
@@ -46,16 +47,28 @@ class Robot:
         model.predictAndShow(targetPos=self.sensors.getTargetPos(),selfPos=self.sensors.getPos())
         preds=model.predict(True)
         return preds
+    waypoints=()
+    dist=-1
     def run(self):
         while True:
             preds=self.learnAndPredict()
-            waypoints=Router.getRouteWP(preds.tolist(),(self.sensors.getPos()[1],self.sensors.getPos()[0]),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),self.radius,1.5)
-            while waypoints[0][0]==int(self.sensors.getPos()[1]) and waypoints[0][1]==int(self.sensors.getPos()[0]):
-                waypoints=waypoints[1:]
+            cv2.waitKey(0)
+            
+            (dist,waypoints)=Router.getRouteWP(preds.tolist(),(dist,waypoints)(self.sensors.getPos()[1],self.sensors.getPos()[0]),(self.sensors.getTargetPos()[1],self.sensors.getTargetPos()[0]),self.radius,1.5)
+            self.sensors.showBot(waypoints)            
+            cv2.waitKey(0)
             print "Cur Pos"+str(self.sensors.getPos())
             print "Waypoints: "+str(waypoints)
-            self.sensors.showBot(waypoints)
             
-            self.sensors.move([waypoints[0][1],waypoints[0][0]])
-            self.sensors.showBot(waypoints[1:])
-            
+            distMoved=0
+            prev=(self.sensors.getPos()[1],self.sensors.getPos()[0])
+            count=0
+            for wp in waypoints:
+                count+=1
+                distMoved+=Sensors.SimSensors.euclid(prev,wp)
+                prev=wp
+                self.sensors.move([wp[1],wp[0]])
+                if distMoved>Robot.moveDistance:
+                    break
+            self.sensors.showBot(waypoints[count:])
+

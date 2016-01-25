@@ -59,4 +59,4 @@ class LRModel:
             truePic[trueDriveable]=(255,255,255)
             cv2.imshow("True",truePic)
 
-        cv2.waitKey(0)
+#        cv2.waitKey(0)

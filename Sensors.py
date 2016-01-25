@@ -242,5 +242,5 @@ class SimSensors:
                 cv2.circle(im,point,5,(255,0,0))
                 prev=point
         cv2.imshow('image',im)
-        cv2.waitKey(0)
+#        cv2.waitKey(0)
 
