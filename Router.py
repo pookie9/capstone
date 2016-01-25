@@ -253,7 +253,7 @@ def getWayPoints(array, prevWPs, start, finish, driveabilityThreshold):
     curLoc = prevWPs[1][0]
     oldPathDist = prevWPs[0] - ((curLoc[0] - oldLoc[0])**2 + (curLoc[0] + oldLoc[1])**2)**.5
     newDist = distPath[0]
-    if oldPathDist < newDist*.95 and isValidPath(array, prevWPs, driveabilityThreshold):
+    if oldPathDist < newDist*.80 and isValidPath(array, prevWPs, driveabilityThreshold):
         return (oldPathDist, prevWPs[1])
     else:
         return (distPath[0], wayPoints)
