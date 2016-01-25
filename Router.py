@@ -261,12 +261,12 @@ def getWayPoints(array, prevWPs, start, finish, driveabilityThreshold):
     distPath = dijk(array, start, finish, driveabilityThreshold)
     wayPoints = []
 
-    prevWP = distPath[1].pop(0) #THE START IS NO LONGER IN PATH
-    prevPoint = prevWP
+    lastWP = distPath[1].pop(0) #THE START IS NO LONGER IN PATH
+    prevPoint = lastWP
     for point in distPath[1]:
-        if diffAngle(prevWP, prevPoint, point):
-            prevWP = point
-            wayPoints.append(point)
+        if diffAngle(lastWP, prevPoint, point):
+            wayPoints.append(prevPoint)
+            lastWP = prevPoint
         prevPoint = point
     wayPoints.append(finish)
 
@@ -275,21 +275,26 @@ def getWayPoints(array, prevWPs, start, finish, driveabilityThreshold):
         print "FIRST RUN!!!"
         return (distPath[0], wayPoints)
 
-    #compare distances after removing first node from prevWPs (this requires euclidean distance).
-    oldLoc = prevWPs[1].pop(0)
-    curLoc = prevWPs[1][0]
+    #have prevWPs start at current location
+    count = 0
+    for pp in prevWPs[1]:
+        if pp == start:
+            break
+        count += 1
+    prevWPs = (prevWPs[0], prevWPs[1][count:])
+    
+    #compare distances of the oldpath and the newpath
+    curLoc = start
     oldPathDist = getPathLength(curLoc, prevWPs[1])
     newDist = distPath[0]
     minDistReduction = .50
     validNess = isValidPath(array, prevWPs, driveabilityThreshold)
 
-    print "OLD DISTANCE: " + str(oldPathDist)
-    print "NEW DISTANCE: " + str(newDist)
     if oldPathDist*minDistReduction < newDist and validNess[1]:
-        #print "oldPath!!! oldDist " + str(oldPathDist) + "  newDist: " + str(newDist) + "   validNess: " + str(validNess)
-        return (oldPathDist, prevWPs[1])
+        print "OLDPATH!!! oldDist " + str(oldPathDist) + "  newDist: " + str(newDist) + "   validNess: " + str(validNess)
+        return (oldPathDist, prevWPs[1][prevWPs[1].index(curLoc):])
     else:
-        #print "newPath!!! oldDist " + str(oldPathDist) + "  newDist: " + str(newDist) + "   validNess: " + str(validNess)
+        print "NEWPATH!!! oldDist " + str(oldPathDist) + "  newDist: " + str(newDist) + "   validNess: " + str(validNess)
         displayWalls(array, validNess[0])
         return (distPath[0], wayPoints)
     
