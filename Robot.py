@@ -47,9 +47,10 @@ class Robot:
         model.predictAndShow(targetPos=self.sensors.getTargetPos(),selfPos=self.sensors.getPos())
         preds=model.predict(True)
         return preds
-    waypoints=()
-    dist=-1
+
     def run(self):
+        waypoints=()
+        dist=-1
         while True:
             preds=self.learnAndPredict()
             cv2.waitKey(0)
