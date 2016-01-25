@@ -14,7 +14,26 @@ import math
 import copy
 import heapq
 import sys
+import numpy as np
+import cv2
+import time
+import Image
 minDriveability = 1 #a tile that is not at least this driveable may as well be a wall
+
+def displayWalls(array):
+    height = len(array)
+    width = len(array[0])
+    blank_image = np.zeros((height,width,3))
+    for xx in range(len(array)):
+        for yy in range(len(array[0])):
+            if array[xx][yy] > 1.5:
+                blank_image[xx][yy] = (0, 0 ,255)
+            else:
+                blank_image[xx][yy] = (255, 255 ,255)
+#    blank_image[:,0:0.5*width] = (255,0,0)      # (B, G, R)
+#    blank_image[:,0.5*width:width] = (0,255,0)
+    cv2.imshow("penis", blank_image)
+    cv2.waitKey(0)
 
 #Gives list of neighboring tiles of the node. Only tiles below the driveability threshold are included.
 def getNeighbors(node, array, driveabilityThreshold):
@@ -61,8 +80,8 @@ def extendWalls(driveMap, radius):
             if driveMap[xx][min(len(driveMap[0])-1, yy+newRadius)] < locHeight:
                 driveMap[xx][min(len(driveMap[0])-1, yy+newRadius)] = locHeight
 
-    yPixels = len(driveMap[0])
-"""    for xx in range(len(driveMap)):
+"""    yPixels = len(driveMap[0])
+    for xx in range(len(driveMap)):
         for yy in range(len(driveMap[0])):
             sys.stdout.write(str(driveMap[xx][yy]))
             if yy != yPixels-1:
@@ -77,7 +96,7 @@ def dijk(array, start, finish, driveabilityThreshold):
     allVerticies = []
     visited = set()
     visited.add('')
-    dist = {}
+    dist = 0
     prev = {}
     xFinish = finish[0]
     yFinish = finish[1]
@@ -107,7 +126,7 @@ def dijk(array, start, finish, driveabilityThreshold):
                 path = [lastNode] + path
                 lastNode = prev[lastNode][0]
             path = [start] + path
-            return (dist, path)
+            return (nodeDist, path)
                 
         for neighbor in getNeighbors(node, array, driveabilityThreshold):
             xNode = node[0]
@@ -140,6 +159,14 @@ def diffAngle(prevWP, prevPoint, curPoint):
     yCurPoint = curPoint[1]
     adjacent1 = math.fabs(xPrevWP-xCurPoint)
     adjacent2 = math.fabs(yPrevWP-yCurPoint)
+
+#    print "xPrevWP, yPrevWP, xCurPoint, yCurPoint, adj1, adj2: "
+#    print xPrevWP
+#    print yPrevWP
+#    print xCurPoint
+#    print yCurPoint
+#    print adjacent1
+#    print adjacent2
     if adjacent1 <= 1.0 and adjacent2 <= 1.0: 
         return False
     xPrevPoint = prevPoint[0]
@@ -155,11 +182,57 @@ def diffAngle(prevWP, prevPoint, curPoint):
         return True
     return False
 
+def line(p1, p2):
+    x0 = p1[0]
+    y0 = p1[1]
+    x1 = p2[0]
+    y1 = p2[1]
+    points_in_line = []
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    sx = -1 if x0 > x1 else 1
+    sy = -1 if y0 > y1 else 1
+    if dx > dy:
+        err = dx / 2.0
+        while x != x1:
+            points_in_line.append((x, y))
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+            x += sx
+    else:
+        err = dy / 2.0
+        while y != y1:
+            points_in_line.append((x, y))
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+            y += sy
+    points_in_line.append((x, y))
+    return points_in_line
+
+def isValidPath(array, prevWPs, driveabilityThreshold):
+    prevPoint = prevWPs[1][0]
+    for point in prevWPs[1][1:]:
+        curX = point[0]
+        curY = point[1]
+        prevX = prevPoint[0]
+        prevY = prevPoint[1]
+        pointsToCheck = []
+
+        for loc in line(prevPoint, point):
+            if array[loc[0]][loc[1]] >= driveabilityThreshold:
+                return False
+        prevPoint = point
+
+    return True
+
 #Gives points in route that are straight lines from each other
-def getWayPoints(array, start, finish, driveabilityThreshold):
+def getWayPoints(array, prevWPs, start, finish, driveabilityThreshold):
     distPath = dijk(array, start, finish, driveabilityThreshold)
-#    print distPath[1]
-    start = distPath[1][0]
     wayPoints = []
 
     prevWP = distPath[1].pop(0) #THE START IS NO LONGER IN PATH
@@ -170,8 +243,20 @@ def getWayPoints(array, start, finish, driveabilityThreshold):
             wayPoints.append(point)
         prevPoint = point
     wayPoints.append(finish)
-    #distPath[1].insert(0, start) #START IS BACK IN THE PATH
-    return (distPath[0], wayPoints)
+
+    #On first iteration, prevWPs should be none
+    if prevWPs[1] == None:
+        return (distPath[0], wayPoints)
+
+    #compare distances after removing first node from prevWPs (this requires euclidean distance).
+    oldLoc = prevWPs[1].pop(0)
+    curLoc = prevWPs[1][0]
+    oldPathDist = prevWPs[0] - ((curLoc[0] - oldLoc[0])**2 + (curLoc[0] + oldLoc[1])**2)**.5
+    newDist = distPath[0]
+    if oldPathDist < newDist*.95 and isValidPath(array, prevWPs, driveabilityThreshold):
+        return (oldPathDist, prevWPs[1])
+    else:
+        return (distPath[0], wayPoints)
     
 #    This should be super easy to get working at a basic level, however there are many interesting ways we can expand. Maybe it will decide everything above .5 is driveable and everything below is not driveable and just run djkstras on that. Or maybe it will decide to do most likely to succeed path, e.g. if there are a lot of .50001s in a row you might want to avoid that area. This could be done by computing products (sum of logs really) or some other similar method.
 
@@ -188,14 +273,9 @@ def getRoute(driveable,robotPos,targetPos, radius, driveabilityThreshold):
 
 #(2d int, (int, int), (int, int), float, True)
 #returns list of points. But there is work done to keep track of distances
-def getRouteWP(driveable,robotPos,targetPos, radius, driveabilityThreshold):
+def getRouteWP(driveable, prevWPs, robotPos, targetPos, radius, driveabilityThreshold):
     extendWalls(driveable, math.ceil(radius))
-    distPoints = getWayPoints(driveable, robotPos, targetPos, driveabilityThreshold)[1]
+    displayWalls(driveable)
+    distPoints = getWayPoints(driveable, prevWPs, robotPos, targetPos, driveabilityThreshold)
     return distPoints
 
-#distPoints=distPoints[1:]
-#    t=[]
-#    for point in distPoints:
-#        point=point.split(',')
-#        t.append(map(int,point))
-#return t
