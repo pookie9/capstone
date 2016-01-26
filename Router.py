@@ -37,7 +37,7 @@ def displayWalls(array, badPoint):
     cv2.circle(blank_image, tmpB, 5, (0,0,0))
 #    blank_image[:,0:0.5*width] = (255,0,0)      # (B, G, R)
 #    blank_image[:,0.5*width:width] = (0,255,0)
-    cv2.imshow("penis", blank_image)
+    cv2.imshow("extendedWalls", blank_image)
     cv2.waitKey(0)
 
 #Gives list of neighboring tiles of the node. Only tiles below the driveability threshold are included.
