@@ -1,0 +1,13 @@
+roslaunch turtlebot_bringup minimal.launch --screen
+roslaunch turtlebot_bringup 3dsensor.launch
+rosrun gmapping slam_gmapping
+python Driver.py
+
+
+TO SAVE A MAP:
+rosrun map_server map_saver
+OR
+ 
+roslaunch turtlebot_stage turtlebot_in_stage.launch
+rosrun gmapping slam_gmapping
+python Driver.py
