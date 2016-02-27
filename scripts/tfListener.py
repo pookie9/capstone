@@ -4,6 +4,7 @@ import rospy;
 import tf;
 import geometry_msgs.msg;
 import roslib;
+import transformations;
 
 #Should be equivalent to rosrun tf tf_echo /map /base_link
 class tfListener:
@@ -14,7 +15,10 @@ class tfListener:
         rate=rospy.Rate(10.0)
         while not rospy.is_shutdown():
             try:
-                (trans,rot) = self.listener.lookupTransform('map', 'odom', rospy.Time(0))
+                #Pulled from here: http://answers.ros.org/question/10268/where-am-i-in-the-map/
+#                (trans,rot) = self.listener.lookupTransform('map', 'odom', rospy.Time(0))
+                (trans,rot) = self.listener.lookupTransform('map', 'base_link', rospy.Time(0))
+                rot=transformations.euler_from_quaternion(rot)
                 return (trans,rot)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
