@@ -15,11 +15,11 @@ def showMapAndPos(trans,rot):
     (data,pos,resolution)=getMapAndPos(trans,rot)
     (width,height)=np.shape(data)
 
-#    f=open('map','w+')
-#    f.write('RESOLUTION:\n'+str(resolution)+'\nROBOTPOS:\n'+str(pos)+'\nMAP:\n')
-#    f.write(str(list(map(list,data))))
-#    f.write('\n')
-#    f.close()
+    f=open('map','w+')
+    f.write('RESOLUTION:\n'+str(resolution)+'\nROBOTPOS:\n'+str(pos)+'\nMAP:\n')
+    f.write(str(list(map(list,data))))
+    f.write('\n')
+    f.close()
 
     im=np.zeros((width,height,3))
 
@@ -29,7 +29,6 @@ def showMapAndPos(trans,rot):
     cv2.circle(im,(pos[0],pos[1]),5,(0,0,255),thickness=2)
     
     cv2.line(im, (pos[0],pos[1]),(pos[0]+int(20*math.cos(pos[2])),pos[1]+int(20*math.sin(pos[2]))),(0,0,255),thickness=3)
-    #im=im[first[0]:last[0],first[1]:last[1]]
     im=cv2.resize(im,(400,400))
     cv2.imshow("Dynamic Map2",im)
     cv2.waitKey(0)
@@ -58,16 +57,15 @@ def getMapAndPos(trans,rot):
     known=np.where(data>=0)
     first=(min(known[0]),min(known[1]))
     last=(max(known[0]),max(known[1]))
-    print "NEW temp first/last: "+str((first,last))
     first=(min(first[0],robotX),min(first[1],robotY))
     last=(max(last[0],robotX),max(last[1],robotY))
-    print "NEW real first/last: "+str((first,last))
     data=data[first[0]:last[0],first[1]:last[1]]
-    robotX=robotX-first[0]
-    robotY=robotY-first[1]
-    print "NEW first,last "+str((first,last))
-    print "NEW after (robotX,robotY) "+str((robotX,robotY))
-    return (data,(robotX,robotY,rot[2]),info.resolution)
+    robotX=robotX-first[1]
+
+    data=np.flipud(data)
+    robotY=last[0]-(robotY)
+    rot=rot[2]*-1
+    return (data,(robotX,robotY,rot),info.resolution)
                         
     
 def dynamic_map_client():
@@ -103,25 +101,32 @@ def showMap(trans,rot):
     last=(max(known[0]),max(known[1]))
     first=(min(first[0],robotX),min(first[1],robotY))
     last=(max(last[0],robotX),max(last[1],robotY))
+    print info.resolution
     print "OLD first/last" +str((first,last))
     print "OLD robotX/robotY"+str((robotX,robotY))
-    print "OLD origin: "+str(info.origin.position)
-    im=np.zeros((height,width,3))
+
+
+    im=np.zeros((width,height,3))
 
     im[(data>=0) & (data<50)]=(0,255,0)
     im[data>=50]=(255,0,0)
 
     cv2.circle(im,(robotX,robotY),5,(0,0,255),thickness=2)#CIRCLE 1
     cv2.line(im, (robotX,robotY),(robotX+int(20*math.cos(rot[2])),robotY+int(20*math.sin(rot[2]))),(0,0,255),thickness=3)
+    cv2.circle(im,(first[1],first[0]),20,(0,255,255),thickness=4)
+    cv2.circle(im,(last[1],last[0]),20,(255,255,0),thickness=4)
+    t=cv2.resize(im,(1000,1000))
+    cv2.imshow("Dynamic MapBig",t)
     print "OLD "+str((robotX-first[0],robotY-first[1]))
     im=im[first[0]:last[0],first[1]:last[1]]
-    cv2.circle(im,(robotX-first[0],robotY-first[1]),5,(255,0,0),thickness=2)###THIS CIRCLE IS NOT THE SAME AS CIRCLE1
-    im=cv2.resize(im,(400,400))
+
+    cv2.circle(im,(robotX-first[1],robotY-first[0]),5,(255,0,0),thickness=2)###THIS CIRCLE IS NOT THE SAME AS CIRCLE1
+    im=cv2.resize(im,(500,500))
 
 ####PETER STOP READING HERE
     cv2.imshow("Dynamic Map",im)
     cv2.waitKey(0)
-     
+
      
 
 def getMap():
