@@ -13,13 +13,18 @@ class tfListener:
         
     def getPos(self):
         rate=rospy.Rate(10.0)
+
         while not rospy.is_shutdown():
+            print "here1"
             try:
+
                 #Pulled from here: http://answers.ros.org/question/10268/where-am-i-in-the-map/
 #                (trans,rot) = self.listener.lookupTransform('map', 'odom', rospy.Time(0))
                 (trans,rot) = self.listener.lookupTransform('map', 'base_link', rospy.Time(0))
+                print "after lookup"
                 rot=transformations.euler_from_quaternion(rot)
                 return (trans,rot)
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException ) as e:
+                print e
                 continue
             rate.sleep()

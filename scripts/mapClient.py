@@ -31,7 +31,7 @@ def showMapAndPos(trans,rot):
     cv2.line(im, (pos[0],pos[1]),(pos[0]+int(20*math.cos(pos[2])),pos[1]+int(20*math.sin(pos[2]))),(0,0,255),thickness=3)
     im=cv2.resize(im,(400,400))
     cv2.imshow("Dynamic Map2",im)
-    cv2.waitKey(0)
+#    cv2.waitKey(0)
      
      
 
@@ -94,8 +94,6 @@ def showMap(trans,rot):
     data=np.array(data)
     data.resize(height,width)
 
-###PETER START READING HERE
-
     known=np.where(data>=0)
     first=(min(known[0]),min(known[1]))
     last=(max(known[0]),max(known[1]))
@@ -120,10 +118,8 @@ def showMap(trans,rot):
     print "OLD "+str((robotX-first[0],robotY-first[1]))
     im=im[first[0]:last[0],first[1]:last[1]]
 
-    cv2.circle(im,(robotX-first[1],robotY-first[0]),5,(255,0,0),thickness=2)###THIS CIRCLE IS NOT THE SAME AS CIRCLE1
+    cv2.circle(im,(robotX-first[1],robotY-first[0]),5,(255,0,0),thickness=2)
     im=cv2.resize(im,(500,500))
-
-####PETER STOP READING HERE
     cv2.imshow("Dynamic Map",im)
     cv2.waitKey(0)
 
