@@ -8,6 +8,7 @@ import Locator;
 import cv2;
 import math;
 import newOverlay;
+import LRModel;
 
 camera_port=0
 ramp_frames=0
@@ -31,4 +32,8 @@ while True:
     cv2.imshow("Overhead",overheadPic)
     cv2.waitKey(0)
     o=newOverlay.Overlay(gmap,overheadPic,gpos,overheadPos,gres)
-    o.overlay()
+    one2one=o.overlay()
+    cv2.imshow("One2one",one2one)
+    cv2.waitKey(0)
+    model=LRModel.LRModel(overheadPic,one2one)
+    model.predictAndShow(selfPos=overheadPos)
