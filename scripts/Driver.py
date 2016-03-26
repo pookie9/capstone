@@ -7,7 +7,7 @@ import rospy;
 import Locator;
 import cv2;
 import math;
-import OverLay;
+import newOverlay;
 
 camera_port=0
 ramp_frames=0
@@ -30,5 +30,5 @@ while True:
     mapClient.showMapAndPos(trans,rot)
     cv2.imshow("Overhead",overheadPic)
     cv2.waitKey(0)
-    o=OverLay.Overlay(gmap,overheadPic,gpos,overheadPos,gres)
+    o=newOverlay.Overlay(gmap,overheadPic,gpos,overheadPos,gres)
     o.overlay()
