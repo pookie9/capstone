@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "Driver.py", line 58, in <module>
+    one2one=o.overlay()
+  File "/home/josh/Documents/capstone/scripts/newOverlay.py", line 144, in overlay
+    tmpGmap1 = cv2.resize(tmpGmap1, (newCols, newRows))
+cv2.error: /build/buildd/opencv-2.4.8+dfsg1/modules/python/src2/cv2.cpp:201: error: (-2) The numpy array of typenum=12, ndims=2 can not be created in function allocate

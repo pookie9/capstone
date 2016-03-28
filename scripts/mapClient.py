@@ -60,6 +60,8 @@ def getMapAndPos(trans,rot):
     first=(min(first[0],robotX),min(first[1],robotY))
     last=(max(last[0],robotX),max(last[1],robotY))
     data=data[first[0]:last[0],first[1]:last[1]]
+    print "First: "+str(first)
+    print "Last: "+str(last)
     robotX=robotX-first[1]
 
     data=np.flipud(data)
@@ -119,7 +121,6 @@ def showMap(trans,rot):
     im=im[first[0]:last[0],first[1]:last[1]]
 
     cv2.circle(im,(robotX-first[1],robotY-first[0]),5,(255,0,0),thickness=2)
-    im=cv2.resize(im,(500,500))
     cv2.imshow("Dynamic Map",im)
     cv2.waitKey(0)
 

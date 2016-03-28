@@ -33,7 +33,7 @@ class Overlay:
         (cols, rows) = np.shape(gmap)
         self.gmapCV = np.zeros((cols,rows))   #this may be a bug... I think it should be rows, columns, 3
         self.gmapCV[gmap >= 50] = 255
-        self.gmapCV[(gmap >= 0) & (gmap < 50)] = 0
+        self.gmapCV[(gmap >= 0) & (gmap < 50)] = 1
 
         im = self.gmapCV.copy()
         #draw the ROBOT!!! with an arrow...
@@ -141,6 +141,7 @@ class Overlay:
             print "scaleRatio: "+str(scaleRatio)
             print "newCols: "+str(newCols)
             print "newRows: "+str(newRows)
+        print "DIMS: "+str(np.shape(tmpGmap1))+" "+str((newCols,newRows))
         tmpGmap1 = cv2.resize(tmpGmap1, (newCols, newRows))
         distFromMiddle *= scaleRatio
         self.gPos = (scaleRatio*self.gPos[0], scaleRatio*self.gPos[1], self.gPos[2])
@@ -173,7 +174,9 @@ class Overlay:
             cv2.waitKey(0)        
         #return 1:1 image of overhead(blacked out) and gmap(overhead dimensions)
         oh2 = self.overheadPic.copy()
-        ohGmap = self.overheadPic.copy()
+        (rows,cols,junk)=np.shape(self.overheadPic)
+
+        ohGmap = np.zeros((rows,cols))
         dCol = newGmapPos[0]-self.overheadPos[0] 
         dRow = newGmapPos[1]-self.overheadPos[1]
 
@@ -213,4 +216,10 @@ class Overlay:
             cv2.namedWindow('tmp1gmap again', cv2.WINDOW_NORMAL)
             cv2.imshow('tmp1gmap again', tmpGmap1)
             cv2.waitKey(0)
+        ohGmap[ohGmap < .1] = -1
+        ohGmap[(ohGmap>.5) & (ohGmap<1.5)]=0
+        ohGmap[ohGmap>2]=1
+
+
+
         return ohGmap
