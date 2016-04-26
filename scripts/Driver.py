@@ -35,15 +35,15 @@ radius=20
 camera_port=0
 ramp_frames=0
 cap = cv2.VideoCapture(0)
-targetPos=(180,160)
+#targetPos=(180,160)
+targetPos=
 print "Done initializing"
 rospy.init_node('Driver')
 posListener=tfListener.tfListener()
-
+timeBetweenRelearn=2#Set amount of time to go in between relearning/predicting/routing
+prevWaypoints=None#Used in case there is no path to target
+prevDist=-1
 while True:
-#    square.doSquare()
-
-
     Mover.spin() #Spins in circle to gather data for gmapping
     time.sleep(3)
     (trans,rot)=posListener.getPos()
@@ -74,17 +74,24 @@ while True:
     model=LRModel.LRModel(overheadPic,one2one)
     preds=model.predictAndShow(selfPos=overheadPos)
     
-
     print np.shape(one2one)
     print np.shape(preds)
     retVal=Router.getRouteWP(preds.tolist(),(-1,None),(overheadPos[1],overheadPos[0]),(targetPos[1],targetPos[0]),radius,.5,one2one.tolist())
     if retVal==None:
         print "No path from here to target"
         os.system('say "No path"')
-        break
+        (dist,waypoints)=(prevDist, prevWaypoints)
     else:
         (dist,waypoints)=retVal
     showData(overheadPic,overheadPos,targetPos,waypoints)
-    Mover.moveTo(overheadPos,(waypoints[0][1],waypoints[0][0]),scale)
-
-
+    startTime=time.time()
+    index=0
+    #Actually moving along the waypoints for a set amount of time
+    for waypoint in waypoints[0]:
+        if startTime+timeBetweenRelearn<time.time():#Exceeded allotted time
+            break
+        junk,overheadPic=cap.read()
+        overheadPos=Locator.getRobotPos(overheadPic)
+        Mover.moveTo(overheadPos,(waypoint[1],waypoint[0]),scale)
+        index+=1
+    prevWaypoints=waypoints[index+1:]

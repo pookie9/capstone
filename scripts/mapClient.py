@@ -54,19 +54,17 @@ def getMapAndPos(trans,rot):
     data=np.array(data)
     data.resize(height,width)
 
-    known=np.where(data>=0)
-    first=(min(known[0]),min(known[1]))
-    last=(max(known[0]),max(known[1]))
-    first=(min(first[0],robotX),min(first[1],robotY))
-    last=(max(last[0],robotX),max(last[1],robotY))
-    data=data[first[0]:last[0],first[1]:last[1]]
-    print "First: "+str(first)
-    print "Last: "+str(last)
-    robotX=robotX-first[1]
+    known=np.where(data>=0) #filled in values
+    first=(min(known[0]),min(known[1])) #Corners of rectangle of known values
+    last=(max(known[0]),max(known[1])) #Corners of rectangle of known values
+    first=(min(first[0],robotX),min(first[1],robotY)) #Making sure the robot is in the known values
+    last=(max(last[0],robotX),max(last[1],robotY)) #Making sure the robot is in the known values
+    data=data[first[0]:last[0],first[1]:last[1]] #slicing the map
+    robotX=robotX-first[1] #Updating position of robot to be in new small map
+    robotY=last[0]-(robotY) #Updating position of robot to be in new small map
+    data=np.flipud(data) #Not sure why, but the map is upside down normall
 
-    data=np.flipud(data)
-    robotY=last[0]-(robotY)
-    rot=rot[2]*-1
+    rot=rot[2]*-1 #Turning robot around due to flipud
     return (data,(robotX,robotY,rot),info.resolution)
                         
     
