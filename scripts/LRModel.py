@@ -4,7 +4,6 @@ import cv2;
 
 class LRModel:
     """Learns a Logistic Regression model using the pixels as attributes"""
-
     #img is an opencv image, note, I think we want to remove the robot from this image by stitching together two images...
     #Labels is a same size numpy array
     def __init__(self, img,labels,ridge=None):

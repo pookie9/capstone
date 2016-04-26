@@ -17,7 +17,7 @@ import time;
 
 def showData(pic,pos1,pos2,wps):
     cv2.circle(pic,(pos1[0],pos1[1]),10,(0,0,255))
-    cv2.circle(pic,pos2,10,(0,255,0))
+    cv2.circle(pic,tuple(pos2[0:2]),10,(0,255,0))
     prev=(pos1[1],pos1[0])
     for wp in wps:
         cv2.circle(pic,(wp[1],wp[0]),10,(255,0,0))
@@ -36,7 +36,11 @@ camera_port=0
 ramp_frames=0
 cap = cv2.VideoCapture(0)
 #targetPos=(180,160)
-targetPos=
+for i in range(20):#Getting rid of first frames of camera because they are unreliable
+    junk,overheadPic=cap.read()
+targetPos=Locator.getTargetPos(overheadPic)
+targetPos=map(int, targetPos)
+print "Target pos: "+str(targetPos)
 print "Done initializing"
 rospy.init_node('Driver')
 posListener=tfListener.tfListener()
@@ -49,8 +53,16 @@ while True:
     (trans,rot)=posListener.getPos()
     print "(trans,rot) "+str((trans,rot))
     (gmap,gpos, gres)=mapClient.getMapAndPos(trans,rot)
-    for i in range(20):
-        junk,overheadPic=cap.read()
+    #Now marking target as driveable
+    for i in range(targetPos[0]-targetPos[2],targetPos[0]+targetPos[2]):
+        if i<0 or i>gmap.shape[0]:
+            continue
+            for j in range(targetPos[0]-targetPos[2],targetPos[0]+targetPos[2]):
+                if i<0 or i>gmap.shape[1]:
+                    continue
+                gmap[i,j]=0
+
+    junk,overheadPic=cap.read()
     overheadPos=Locator.getRobotPos(overheadPic)
     if onTarget(overheadPos,targetPos):
         print "On target"
@@ -59,7 +71,7 @@ while True:
     scale=overheadPos[3]
     mapClient.showMapAndPos(trans,rot)
     
-    cv2.circle(overheadPic,(180,160),10,(0,0,255))
+    cv2.circle(overheadPic,(targetPos[0],targetPos[1]),10,(0,0,255))
     cv2.imshow("Overhead",overheadPic)
     cv2.waitKey(0)
 
@@ -83,6 +95,7 @@ while True:
         (dist,waypoints)=(prevDist, prevWaypoints)
     else:
         (dist,waypoints)=retVal
+    print waypoints
     showData(overheadPic,overheadPos,targetPos,waypoints)
     startTime=time.time()
     index=0
